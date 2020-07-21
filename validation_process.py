@@ -7,16 +7,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-browsers={'Chrome' : '/usr/local/bin/chromedriver', 'Firefox': ''}
-for browser, browser_path in browsers.items():
-    print ("browser name", browser)
-    print("path", browser_path)
+browsers=['Chrome','Firefox']
 
-    func = getattr(webdriver, browser)
-    if browser_path:
-        driver= func(browser_path)
-    else:
-        driver= func()
+for browser in browsers:
+
+    if browser == 'Chrome':
+
+        #Chrome browser: Use your chrome driver's path to initiate the browser
+        driver=webdriver.Chrome('/usr/local/bin/chromedriver')
+    elif browser =='Firefox':
+
+        #Firefox browser: Use your Geckodriver's path to initiate the browser
+        driver= webdriver.Firefox(executable_path='/usr/local/bin/geckodriver')
 
     driver.get("https://prueba.undostres.com.mx")
     time.sleep(5)
@@ -29,15 +31,16 @@ for browser, browser_path in browsers.items():
     driver.find_element(By.XPATH, '//*[@class="button buttonRecharge"]').click()
     try:
         element_present = EC.presence_of_element_located((By.ID, 'payment-form'))
-        WebDriverWait(driver,5).until(element_present)
+        WebDriverWait(driver,10).until(element_present)
     except TimeoutException:
         print("Timed out waiting for page to load")
     finally:
+        time.sleep(10)
 
         #  is_displayed() will check the presence of "Pagar con Tarjeta" button to verify the payment page.
-        driver.find_element(By.XPATH,"(//*[@name='formsubmit'])[1]").is_displayed()
-        driver.find_element(By.XPATH, '(//*[@class="form-control cardname"])[2]').send_keys('test')
-        driver.find_element(By.XPATH, '(//*[@class="form-control cardnumber"])[2]').send_keys('4111111111111111')
+        driver.find_element(By.XPATH,"//div[@class='card-info-box']//div[contains(@class,'field form-group')]/label[contains(text(),'Nombre como')]").is_displayed()
+        driver.find_element(By.XPATH, "(//*[@name='cardname'])[2]").send_keys('test')
+        driver.find_element(By.XPATH, "//*[@id='cardnumberunique']").send_keys('4111111111111111')
         driver.find_element(By.XPATH, '(//*[@class="form-control expmonth"])[2]').send_keys('11')
         driver.find_element(By.XPATH, '(//*[@class="form-control expyear"])[2]').send_keys('2025')
         driver.find_element(By.XPATH, '(//*[@class="form-control cvv"])[2]').send_keys('111')
@@ -68,11 +71,13 @@ for browser, browser_path in browsers.items():
             print("Timed out waiting for page to load")
         finally:
             print("process suceessful")
-            time.sleep(2)
+            time.sleep(15)
             string_msg = driver.find_element(By.XPATH,"//span[contains(@class, 'recharge-status')]").text
             print(string_msg)
 
             # Verify whether "Success" message is being displayed or not
             assert string_msg == '¡Exitosa!'
             print("done")
+
+        driver.quit()
 
